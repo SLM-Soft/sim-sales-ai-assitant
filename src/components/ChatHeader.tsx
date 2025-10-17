@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, Heading, HStack, Spinner, Text, Badge } from '@chakra-ui/react';
+import { Flex, Heading, HStack, Spinner, Text, Box } from '@chakra-ui/react';
 
 interface Props {
   backendOk: boolean | null;
@@ -7,7 +7,13 @@ interface Props {
 
 const ChatHeader: React.FC<Props> = ({ backendOk }) => {
   return (
-    <Flex justifyContent="space-between" alignItems="center" mb={4}>
+    <Flex
+      justifyContent="space-between"
+      alignItems="center"
+      p={4}
+      bg="red.600"
+      color="white"
+    >
       <Heading size="md" textAlign="center">
         💬 Bedrock Chat
       </Heading>
@@ -19,13 +25,9 @@ const ChatHeader: React.FC<Props> = ({ backendOk }) => {
             <Text fontSize="sm">Server check…</Text>
           </HStack>
         ) : backendOk ? (
-          <Badge colorScheme="green" variant="subtle">
-            Backend online
-          </Badge>
+          <Box bg="green.400" w={5} h={5} rounded="full" />
         ) : (
-          <Badge colorScheme="red" variant="subtle">
-            Backend offline
-          </Badge>
+          <Box bg="red.400" w={5} h={5} rounded="full" />
         )}
       </HStack>
     </Flex>

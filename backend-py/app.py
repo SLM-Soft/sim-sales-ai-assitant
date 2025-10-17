@@ -57,8 +57,9 @@ class ChatMessage(BaseModel):
 
 class BedrockRequest(BaseModel):
     messages: Optional[List[ChatMessage]] = []
-    maxTokens: Optional[int] = 512
+    maxTokens: Optional[int] = 1024
     temperature: Optional[float] = 0.7
+
 
 
 class BedrockResponse(BaseModel):
@@ -133,7 +134,7 @@ def invoke_bedrock(payload: BedrockRequest):
     body = {
         "inputText": prompt,
         "textGenerationConfig": {
-            "maxTokenCount": int(payload.maxTokens or 512),
+            "maxTokenCount": int(payload.maxTokens or 1024),
             "temperature": float(payload.temperature or 0.7),
         },
     }

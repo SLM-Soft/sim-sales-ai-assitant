@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, Text } from '@chakra-ui/react';
+import { Box, VStack, Text, Flex } from '@chakra-ui/react';
 
 interface Msg {
   role: string;
@@ -19,23 +19,39 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
       overflowY="auto"
       px={2}
       py={2}
-      borderWidth="1px"
-      borderRadius="md"
-      mb={4}
+      mx={4}
+      border="1px solid"
+      borderColor="gray.200"
     >
       <VStack gap={3} align="stretch">
         {messages.length === 0 ? (
           <Text color="gray.500" textAlign="center">
-            No messages. Please select an option to start.
+            Нет сообщений. Пожалуйста, выберите опцию, чтобы начать.
           </Text>
         ) : (
-          messages.map((m, i) => (
-            <Box key={i}>
-              <Text fontSize="sm" color={m.role === 'User' ? 'gray.800' : 'gray.600'}>
-                <strong>{m.role}:</strong> {m.content}
-              </Text>
-            </Box>
-          ))
+          messages.map((m, i) => {
+            const isUser = m.role === 'User';
+            return (
+              <Flex
+                key={i}
+                justify={isUser ? 'flex-end' : 'flex-start'}
+              >
+                <Box
+                  maxW="70%"
+                  px={4}
+                  py={2}
+                  bg={isUser ? 'red.600' : 'black'}
+                  color="white"
+                  textAlign="left"
+                  wordBreak="break-word"
+                >
+                  <Text fontSize="sm">
+                    {m.content}
+                  </Text>
+                </Box>
+              </Flex>
+            );
+          })
         )}
       </VStack>
     </Box>

@@ -5,6 +5,9 @@ import MessagesList from './MessagesList';
 import FirstOptionsGrid from './FirstOptionsGrid';
 import SecondOptionsGrid from './SecondOptionsGrid';
 import InputRow from './InputRow';
+import SelectedOptionDisplay from './SelectedOptionDisplay';
+import { checkHealth, sendMessage } from '../api/bedrock';
+import { firstOptions } from '../mock';
 
 const ChatBox: React.FC = () => {
   const [firstOption, setFirstOption] = useState<number | null>(null);
@@ -14,93 +17,99 @@ const ChatBox: React.FC = () => {
     { role: 'User' | 'Assistant'; content: string }[]
   >([]);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
-  // автоскролл при добавлении сообщений
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages.length]);
 
-  const handleFirstSelect = (opt: number) => {
-    setFirstOption(opt);
-    // можно добавить запись в messages, например:
-    setMessages((m) => [
-      ...m,
-      { role: 'User', content: `Selected first option ${opt}` },
-    ]);
-  };
+  const handleFirstSelect = (opt: number) => setFirstOption(opt);
+  const handleSecondSelect = (opt: number) => setSecondOption(opt);
 
-  const handleSecondSelect = (opt: number) => {
-    setSecondOption(opt);
-    setMessages((m) => [
-      ...m,
-      { role: 'User', content: `Selected second option ${opt}` },
-    ]);
-  };
+  const handleSend = async () => {
+    if (!firstOption || !secondOption || !input.trim()) return;
 
-  const handleSend = () => {
-    // закомментирована оригинальная логика отправки (сеть)
-    // sendMessage([...])...
+    const firstDesc = firstOptions[firstOption - 1].description;
+    const secondTitle = ['Option 1', 'Option 2', 'Option 3', 'Option 4'][secondOption - 1];
 
-    console.log({
-      user: 'User',
-      message: {
-        firstOption,
-        secondOption,
-        input,
-      },
-    });
+    // const userMessage = `${firstDesc} | ${secondTitle} | ${input.trim()}`;
+    const userMessage = input.trim();
+    console.log('User message:', `${firstDesc} | ${secondTitle} | ${input.trim()}`);
 
-    // локально добавим сообщение в список диалога для наглядности:
-    if (input.trim()) {
-      setMessages((m) => [...m, { role: 'User', content: input.trim() }]);
-      // имитация ответа ассистента (опционально)
+    setMessages((m) => [...m, { role: 'User', content: userMessage }]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const { outputText } = await sendMessage([
+        { role: 'User', content: userMessage },
+      ]);
+
+      if (outputText) {
+        setMessages((m) => [...m, { role: 'Assistant', content: outputText }]);
+      }
+    } catch (err) {
+      console.error(err);
       setMessages((m) => [
         ...m,
-        { role: 'Assistant', content: 'Ответ (заглушка)' },
+        { role: 'Assistant', content: 'Error: failed to get a response' },
       ]);
+    } finally {
+      setLoading(false);
     }
-
-    setInput('');
   };
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      const ok = await checkHealth();
+      setBackendOk(ok);
+    };
+
+    fetchHealth();
+  }, []);
 
   return (
     <Box
-      borderRadius="md"
-      boxShadow="md"
-      p={4}
+      border="1px solid"
+      borderColor="gray.200"
       display="flex"
       flexDirection="column"
       height="full"
       minH="520px"
+      gap={4}
     >
-      {/* Header всегда виден */}
-      <ChatHeader backendOk={null} />
+      <ChatHeader backendOk={backendOk} />
 
-      {/* Основная область: сверху диалог, снизу — либо большая сетка (шаг1), либо маленькие карточки + input (шаг2) */}
-      {/* Диалог всегда видим (MessagesList) */}
+      <SelectedOptionDisplay
+        selected={firstOption}
+        onBack={() => {
+          setFirstOption(null);
+          setSecondOption(null);
+        }}
+      />
+
       {firstOption && (
         <MessagesList messages={messages} scrollRef={scrollRef} />
       )}
 
-      {/* Шаг 1: 6 больших карточек (занимают оставшееся место) */}
       {!firstOption && <FirstOptionsGrid onSelect={handleFirstSelect} />}
 
-      {/* Шаг 2: 4 маленькие карточки + поле ввода (поле disabled пока не выбран secondOption) */}
       {firstOption && (
-        <Box mt={4} flex="0 0 auto">
+        <Box flex="0 0 auto">
           <SecondOptionsGrid
             selected={secondOption}
             onSelect={handleSecondSelect}
           />
-          <Box mt={3}>
+          <Box mx={4} my={3}>
             <InputRow
               input={input}
               setInput={setInput}
               onSend={handleSend}
-              loading={false}
-              disabled={!secondOption} // <--- disabled пока не выбран secondOption
+              loading={loading}
+              disabled={!secondOption || loading}
             />
           </Box>
         </Box>

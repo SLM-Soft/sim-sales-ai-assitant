@@ -14,7 +14,14 @@ const Message: React.FC<Props> = ({ message }) => {
           : 'bg-gray-200 self-start'
       }`}
     >
-      <span>{message.content}</span>
+      <span>
+        {message.content.split('\\n').map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      </span>
     </div>
   );
 };

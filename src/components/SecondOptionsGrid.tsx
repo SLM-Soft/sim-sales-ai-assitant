@@ -1,22 +1,20 @@
-// components/SecondOptionsGrid.tsx
 import React from 'react';
 import { SimpleGrid, Box, Text } from '@chakra-ui/react';
 
 interface Props {
-  selected?: number | null; // <-- добавили ожидаемый проп
+  selected?: number | null;
   onSelect: (option: number) => void;
 }
 
 const SecondOptionsGrid: React.FC<Props> = ({ selected = null, onSelect }) => {
   return (
-    // Маленькая сетка 2x2 — компактная, чтобы под ней поместилось поле ввода
     <SimpleGrid columns={2} gap={3}>
       {[1, 2, 3, 4].map((num) => (
         <Box
           key={num}
-          p={3}
+          p={2}
+          mx={4}
           borderWidth="1px"
-          borderRadius="md"
           display="flex"
           alignItems="center"
           justifyContent="center"

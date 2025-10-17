@@ -22,6 +22,7 @@ const InputRow: React.FC<Props> = ({
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && !disabled && onSend()}
+        rounded="none"
         placeholder={
           disabled ? 'Please choose an option' : 'Write a message...'
         }
