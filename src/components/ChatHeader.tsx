@@ -1,5 +1,5 @@
 import React from 'react';
-import { Flex, Heading, HStack, Spinner, Text, Box } from '@chakra-ui/react';
+import { Flex, HStack, Spinner, Text, Box } from '@chakra-ui/react';
 
 interface Props {
   backendOk: boolean | null;
@@ -7,17 +7,7 @@ interface Props {
 
 const ChatHeader: React.FC<Props> = ({ backendOk }) => {
   return (
-    <Flex
-      justifyContent="space-between"
-      alignItems="center"
-      p={4}
-      bg="red.600"
-      color="white"
-    >
-      <Heading size="md" textAlign="center">
-        💬 Bedrock Chat
-      </Heading>
-
+    <Flex textAlign="center" p={4} bg="red.600" color="white" gap={2}>
       <HStack gap={2}>
         {backendOk === null ? (
           <HStack gap={2}>
@@ -29,7 +19,8 @@ const ChatHeader: React.FC<Props> = ({ backendOk }) => {
         ) : (
           <Box bg="red.400" w={5} h={5} rounded="full" />
         )}
-      </HStack>
+      </HStack>{' '}
+      Bedrock Chat
     </Flex>
   );
 };

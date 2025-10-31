@@ -9,7 +9,10 @@ interface Props {
 }
 
 const SelectedOptionDisplay: React.FC<Props> = ({ selected, onBack }) => {
-  if (!selected) return null;
+  if (selected === null || selected === undefined) return null;
+
+  const opt = firstOptions[selected];
+  if (!opt) return null;
 
   const { title, icon: Icon, bgColor } = firstOptions[selected];
 

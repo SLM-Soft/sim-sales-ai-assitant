@@ -18,7 +18,7 @@ const FirstOptionsGrid: React.FC<Props> = ({ onSelect }) => {
         </Text>
       </Box>
 
-      <SimpleGrid columns={2} row={3} gap={4} mt={2} flex="1">
+      <SimpleGrid columns={2} gap={4} mt={2} flex="1">
         {firstOptions.map((opt, idx) => {
           const Icon = opt.icon;
           return (
@@ -27,14 +27,22 @@ const FirstOptionsGrid: React.FC<Props> = ({ onSelect }) => {
               p={4}
               borderWidth="1px"
               cursor="pointer"
-              _hover={{ bg: 'red.600', color: 'white', transitionDuration: '0.3s' }}
-              onClick={() => onSelect(idx + 1)}
+              _hover={{
+                bg: 'red.600',
+                color: 'white',
+                transitionDuration: '0.3s',
+              }}
+              onClick={() => onSelect(idx)}
               display="flex"
               flexDirection="column"
               justifyContent="flex-start"
               position="relative"
             >
-              <Flex justifyContent="space-between" alignItems="flex-start" mb={2}>
+              <Flex
+                justifyContent="space-between"
+                alignItems="flex-start"
+                mb={2}
+              >
                 <Text fontWeight="bold" flex="1" mr={4} fontSize="base">
                   {opt.title}
                 </Text>
@@ -52,7 +60,7 @@ const FirstOptionsGrid: React.FC<Props> = ({ onSelect }) => {
                 </Box>
               </Flex>
 
-              <Text fontSize="sm" color="gray.500">
+              <Text fontSize="sm">
                 {opt.description}
               </Text>
             </Box>
