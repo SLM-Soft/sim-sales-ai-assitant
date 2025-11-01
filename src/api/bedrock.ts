@@ -10,7 +10,7 @@ interface BedrockResponse {
   success: boolean;
   output: string;
 }
-
+// here
 export const sendMessage = async (
   messages: ChatMessage[]
 ): Promise<{ outputText: string; tokensUsed: number }> => {
