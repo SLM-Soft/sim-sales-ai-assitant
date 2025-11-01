@@ -8,9 +8,9 @@ This is a sales AI assistant chat application with a React + TypeScript frontend
 
 **Architecture:**
 - **Frontend**: React 19 + TypeScript + Vite + Chakra UI + TailwindCSS
-- **Backend**: Python FastAPI server that proxies requests to AWS Bedrock
+- **Backend**: Python FastAPI server (local dev) OR Netlify Functions (production) that proxies requests to AWS Bedrock
 - **State Management**: Zustand for client-side state
-- **API Communication**: Axios with Vite dev server proxy
+- **API Communication**: Axios with Vite dev server proxy or Netlify redirects
 
 ## Development Setup
 
@@ -49,6 +49,28 @@ cp .env.example .env
 python app.py
 ```
 
+### Netlify Functions Development (Alternative)
+
+Instead of running the FastAPI backend, you can test Netlify Functions locally:
+
+```bash
+# Install dependencies (includes netlify-cli)
+npm install
+
+# Run with Netlify Dev (starts Vite + functions)
+npm run dev:netlify
+```
+
+This will:
+- Start the Vite dev server on port 8888 (Netlify Dev default)
+- Start Netlify Functions on port 9999
+- Automatically proxy `/api/*` requests to functions via redirects
+
+**Netlify Functions Structure:**
+- **netlify/functions/checkHealth.py** - Health check endpoint
+- **netlify/functions/bedrock.py** - AWS Bedrock integration
+- **netlify/functions/requirements.txt** - Python dependencies (boto3)
+
 ### AWS Configuration
 
 The backend requires AWS credentials to access Bedrock. Configure one of:
@@ -83,18 +105,36 @@ The backend requires AWS credentials to access Bedrock. Configure one of:
 
 ### Backend Structure
 
+**FastAPI Backend (Local Development):**
 - **backend-py/app.py** - FastAPI application with two main endpoints:
   - `GET /api/health` - Health check endpoint
   - `POST /api/bedrock` - Proxies chat requests to AWS Bedrock
 
+**Netlify Functions (Production/Testing):**
+- **netlify/functions/checkHealth.py** - Health check endpoint
+- **netlify/functions/bedrock.py** - AWS Bedrock proxy with same functionality as FastAPI version
+- **netlify/functions/requirements.txt** - Python dependencies
+- **netlify.toml** - Configuration with redirects: `/api/*` → `/.netlify/functions/*`
+
 ### Request Flow
 
+**With FastAPI Backend (npm run dev):**
 1. User sends message → Frontend (React)
 2. `useChatStore` adds user message to state
 3. `sendMessage()` from `src/api/bedrock.ts` sends request to `/api/bedrock`
-4. Vite dev server proxies `/api/*` to `http://127.0.0.1:3000` (backend)
+4. Vite dev server proxies `/api/*` to `http://127.0.0.1:3000` (FastAPI backend)
 5. FastAPI backend (`app.py`) formats prompt and calls AWS Bedrock
 6. Backend returns response with `{success: boolean, output: string}`
+7. Frontend parses `output` (JSON string) to extract `outputText` and `tokenCount`
+8. Assistant message added to chat store and displayed
+
+**With Netlify Functions (npm run dev:netlify or production):**
+1. User sends message → Frontend (React)
+2. `useChatStore` adds user message to state
+3. `sendMessage()` from `src/api/bedrock.ts` sends request to `/api/bedrock`
+4. Netlify redirect routes `/api/bedrock` → `/.netlify/functions/bedrock`
+5. Netlify Function (`bedrock.py`) formats prompt and calls AWS Bedrock
+6. Function returns response with `{success: boolean, output: string}`
 7. Frontend parses `output` (JSON string) to extract `outputText` and `tokenCount`
 8. Assistant message added to chat store and displayed
 
@@ -185,7 +225,60 @@ The frontend can be deployed to AWS Amplify Hosting using the `amplify.yml` conf
 - `amplify.yml` - Build specification for Amplify
 - `src/config.ts` - Environment configuration that reads `VITE_API_URL`
 
-### Backend Deployment Options
+### Full Stack Deployment to Netlify (Recommended)
+
+The application can be fully deployed to Netlify, which hosts both the frontend and backend functions.
+
+**Steps:**
+
+1. **Connect Repository to Netlify**
+   - Go to Netlify Dashboard (https://app.netlify.com)
+   - Click "Add new site" → "Import an existing project"
+   - Connect your Git repository (GitHub, GitLab, Bitbucket)
+   - Select the branch to deploy (e.g., `main`)
+
+2. **Configure Build Settings**
+   - Netlify will auto-detect `netlify.toml`
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+   - Functions directory: `netlify/functions` (auto-detected)
+
+3. **Set Environment Variables**
+   - In Netlify Dashboard, go to "Site configuration" → "Environment variables"
+   - Add required variables:
+     - `AWS_REGION` - AWS region for Bedrock (e.g., `eu-central-1`)
+     - `AWS_ACCESS_KEY_ID` - Your AWS access key
+     - `AWS_SECRET_ACCESS_KEY` - Your AWS secret key
+     - `BEDROCK_MODEL_ID` - Model to use (e.g., `amazon.titan-text-express-v1`)
+     - `USE_MOCK_BEDROCK` - Optional: `true` for testing without AWS
+   - **Note**: Frontend works with `/api/*` paths, Netlify redirects handle routing to functions
+
+4. **Deploy**
+   - Click "Deploy site"
+   - Netlify will:
+     - Install Node.js dependencies
+     - Build the frontend with Vite
+     - Install Python dependencies for functions (from `netlify/functions/requirements.txt`)
+     - Deploy everything together
+
+5. **Access Your Site**
+   - Netlify provides a URL: `https://your-site-name.netlify.app`
+   - Custom domains can be configured in site settings
+
+**Advantages of Netlify Deployment:**
+- ✅ Single platform for frontend + backend
+- ✅ Automatic HTTPS
+- ✅ Built-in CI/CD from Git
+- ✅ No separate API URL configuration needed (redirects handle routing)
+- ✅ Serverless functions scale automatically
+- ✅ Easy environment variable management
+
+**Configuration Files:**
+- `netlify.toml` - Build and function configuration
+- `netlify/functions/*.py` - Python serverless functions
+- `netlify/functions/requirements.txt` - Python dependencies
+
+### Backend Deployment Options (Alternative)
 
 The Python FastAPI backend **cannot** be deployed to Amplify. Choose one of these options:
 
