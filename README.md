@@ -71,3 +71,15 @@ export default defineConfig([
   },
 ])
 ```
+
+Frontend
+``` 
+npm install
+npm run dev 
+```
+Backend
+``` 
+cd backend-py
+pip install -r requirements.txt
+python3 app.py
+```

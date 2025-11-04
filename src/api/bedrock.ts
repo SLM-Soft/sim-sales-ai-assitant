@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { config } from '../config';
 
 export type Role = 'User' | 'Assistant';
 
@@ -61,7 +62,7 @@ export async function sendAgentMessage(
 ): Promise<{ outputText: string }> {
   const body: AgentRequest = { inputText, sessionId };
 
-  const resp = await axios.post<BedrockResponse>('/api/agent', body);
+  const resp = await axios.post<BedrockResponse>(`${config.apiBaseUrl}/agent`, body);
 
   if (!resp.data) throw new Error('No response from server');
   if (!resp.data.success) throw new Error(resp.data.output || 'Error from backend');
@@ -77,7 +78,7 @@ export async function sendAgentDispatch(params: {
   level?: 'brief' | 'detailed';
   includeBenchmarks?: boolean;
 }): Promise<{ outputText: string }> {
-  const resp = await axios.post('/api/agent/dispatch', params);
+  const resp = await axios.post(`${config.apiBaseUrl}/agent/dispatch`, params);
   if (!resp.data || !resp.data.success) {
     throw new Error(resp.data?.output || 'Agent dispatch error');
   }
@@ -87,7 +88,7 @@ export async function sendAgentDispatch(params: {
 
 export const checkHealth = async (): Promise<boolean> => {
   try {
-    const resp = await axios.get('/api/health');
+    const resp = await axios.get(`${config.apiBaseUrl}/health`);
     return resp.status === 200 && resp.data?.ok === true;
   } catch {
     return false;
