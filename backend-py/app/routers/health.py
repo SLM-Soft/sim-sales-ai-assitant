@@ -12,4 +12,5 @@ def health():
         "mock": settings.USE_MOCK_BEDROCK,
         "agent_id": settings.BEDROCK_AGENT_ID,
         "agent_alias_id": settings.BEDROCK_AGENT_ALIAS_ID,
+        "kb_id": settings.BEDROCK_KB_ID,
     }

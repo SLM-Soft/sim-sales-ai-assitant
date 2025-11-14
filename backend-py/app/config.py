@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     # optional profile name
     AWS_PROFILE: str | None = None
 
-    # === Bedrock/Agent ===
-    BEDROCK_MODEL_ID: str = "amazon.titan-text-express-v1"
+     # === Bedrock/Agent ===
+    BEDROCK_MODEL_ID: str = "anthropic.claude-3-5-sonnet-20240620-v1:0"  # CHANGE HERE FOR OTHER MODEL
+    BEDROCK_KB_ID: str | None = None
     BEDROCK_AGENT_ID: str | None = None
     BEDROCK_AGENT_ALIAS_ID: str | None = None
 

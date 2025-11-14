@@ -1,12 +1,10 @@
 import React from 'react';
-import ChatBoxNew from '../components/ChatBoxNew';
+import ChatBox from '../components/ChatBox';
 
 const HomePage: React.FC = () => {
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-xl h-3/4">
-        <ChatBoxNew />
-      </div>
+    <div className="min-h-screen w-full bg-neutral-800 flex justify-center px-4 py-6">
+      <ChatBox />
     </div>
   );
 };

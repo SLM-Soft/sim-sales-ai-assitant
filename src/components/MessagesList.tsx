@@ -12,20 +12,12 @@ interface Props {
 }
 
 const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
+  console.log('Rendering MessagesList with messages:', messages);
   return (
-    <Box
-      ref={scrollRef}
-      flex="1 1 auto"
-      overflowY="auto"
-      px={2}
-      py={2}
-      mx={4}
-      border="1px solid"
-      borderColor="gray.200"
-    >
+    <Box px={2} py={2} className="text-white">
       <VStack gap={3} align="stretch">
         {messages.length === 0 ? (
-          <Text color="gray.500" textAlign="center">
+          <Text textAlign="center">
             No messages yet. Start the conversation!
           </Text>
         ) : (
@@ -54,6 +46,9 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
             );
           })
         )}
+
+        {/* якорь для авто-скролла страницы */}
+        <Box ref={scrollRef} h="1px" />
       </VStack>
     </Box>
   );

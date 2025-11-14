@@ -60,7 +60,7 @@ The backend requires AWS credentials to access Bedrock. Configure one of:
 - `AWS_REGION` - AWS region (default: eu-central-1)
 - `AWS_ACCESS_KEY_ID` - Your AWS access key
 - `AWS_SECRET_ACCESS_KEY` - Your AWS secret key
-- `BEDROCK_MODEL_ID` - Model to use (default: amazon.titan-text-express-v1)
+- `BEDROCK_MODEL_ID` - Model to use (default: anthropic.claude-3-5-sonnet-20240620-v1:0)
 - `PORT` - Backend port (default: 3000)
 - `USE_MOCK_BEDROCK` - Set to "true" for mock responses during development
 
@@ -113,7 +113,7 @@ interface ChatMessage {
 class BedrockRequest(BaseModel):
     messages: Optional[List[ChatMessage]] = []
     maxTokens: Optional[int] = 1024
-    temperature: Optional[float] = 0.7
+    temperature: Optional[float] = 0 # 0.7
 ```
 
 **Backend Response**:
