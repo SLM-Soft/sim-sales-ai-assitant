@@ -1,13 +1,11 @@
 import {
-  FaApple,
-  FaAndroid,
-  FaReact,
-  FaNode,
-  FaPython,
-  FaJava,
+  FaChartPie,
+  FaPiggyBank,
+  FaBalanceScale,
 } from 'react-icons/fa';
 
 interface Option {
+  key: string;
   title: string;
   description: string;
   icon: React.ElementType;
@@ -16,41 +14,27 @@ interface Option {
 
 const firstOptions: Option[] = [
   {
+    key: 'project_analysis',
     title: 'Analyse My Data',
     description: 'Get insights from your dataset quickly',
-    icon: FaApple,
+    icon: FaChartPie,
     bgColor: 'green.400',
   },
   {
+    key: 'cost_optimization',
     title: 'Let`s Optimize Costs',
     description: 'Find ways to reduce expenses efficiently',
-    icon: FaAndroid,
+    icon: FaPiggyBank,
     bgColor: 'blue.400',
   },
   {
-    title: 'Prepare Executive Report',
-    description: 'Create reports for your managers',
-    icon: FaReact,
-    bgColor: 'orange.400',
-  },
-  {
-    title: 'Compare with Industry',
-    description: 'Benchmark your metrics against others',
-    icon: FaNode,
+    key: 'sales',
+    title: 'SLM Sales Assistant',
+    description: 'Get help with your sales strategy and execution',
+    icon: FaBalanceScale,
     bgColor: 'purple.400',
   },
-  {
-    title: 'Explain a Metric',
-    description: 'Understand what the numbers mean',
-    icon: FaPython,
-    bgColor: 'teal.400',
-  },
-  {
-    title: 'Predict Future Trends',
-    description: 'Use AI to forecast upcoming patterns',
-    icon: FaJava,
-    bgColor: 'pink.400',
-  },
+
 ];
 
 export default firstOptions;

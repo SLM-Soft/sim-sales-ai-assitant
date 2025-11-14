@@ -1,5 +1,6 @@
 import React from 'react';
 import { HStack, Input, Button } from '@chakra-ui/react';
+import { FiSettings, FiX } from 'react-icons/fi';
 
 interface Props {
   input: string;
@@ -7,6 +8,8 @@ interface Props {
   onSend: () => void;
   loading: boolean;
   disabled?: boolean;
+  showSettings: boolean;
+  setShowSettings: (v: boolean) => void;
 }
 
 const InputRow: React.FC<Props> = ({
@@ -15,6 +18,8 @@ const InputRow: React.FC<Props> = ({
   onSend,
   loading,
   disabled = false,
+  showSettings,
+  setShowSettings,
 }) => {
   return (
     <HStack gap={3}>
@@ -23,20 +28,30 @@ const InputRow: React.FC<Props> = ({
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && !disabled && onSend()}
         rounded="none"
-        placeholder={
-          disabled ? 'Please choose an option' : 'Write a message...'
-        }
+        placeholder={disabled ? 'Please choose an option' : 'Write a message...'}
         disabled={disabled || loading}
         p={4}
       />
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowSettings(!showSettings)}
+          title={showSettings ? 'Close generation settings' : 'Open generation settings'}
+          className="w-10 h-10 !border border-gray-600 inline-flex items-center justify-center cursor-pointer"
+        >
+          {showSettings ? <FiX size={25} /> : <FiSettings size={25} />}
+        </button>
+      </div>
+
       <Button
         onClick={onSend}
         loading={loading}
         loadingText="Sending"
-        bg="#dc2626"
+        bg="#000"
         color="white"
-        width="20%"
-        _hover={{ opacity: 0.9 }}
+        w="20%"
+        borderRadius={0}
+        _hover={{ bg: '#dc2626' }}
         p={4}
         disabled={disabled || loading}
       >

@@ -11,6 +11,7 @@ idna==3.11
 jmespath==1.0.1
 pydantic==2.12.2
 pydantic_core==2.41.4
+pydantic-settings==2.6.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.1
 python-multipart==0.0.20

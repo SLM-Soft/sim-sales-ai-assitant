@@ -1,5 +1,5 @@
 import React from 'react';
-import { SimpleGrid, Box, Text, Flex, VStack } from '@chakra-ui/react';
+import { SimpleGrid, Box, Text, } from '@chakra-ui/react';
 import { firstOptions } from '../mock';
 
 interface Props {
@@ -8,58 +8,43 @@ interface Props {
 
 const FirstOptionsGrid: React.FC<Props> = ({ onSelect }) => {
   return (
-    <VStack align="stretch" flex="1" p={4}>
-      <Box textAlign="center" mb={4}>
-        <Text fontSize="xl" fontWeight="bold" mb={2}>
+    <div className='flex flex-col !h-full items-center justify-center text-white gap-20'>
+      <div className='items-center justify-center flex flex-col'>
+        <p className='!text-2xl !font-bold text-center'>
           What Can I Help You With?
-        </Text>
-        <Text fontSize="sm" color="gray.500">
+        </p>
+        <p className='mb-4 text-center text-gray-300'>
           Choose one of the options below and we will assist you!
-        </Text>
-      </Box>
+        </p>
+      </div>
 
-      <SimpleGrid columns={2} row={3} gap={4} mt={2} flex="1">
+      <SimpleGrid columns={3} gap={4} mt={2}>
         {firstOptions.map((opt, idx) => {
           const Icon = opt.icon;
           return (
             <Box
               key={idx}
-              p={4}
-              borderWidth="1px"
-              cursor="pointer"
-              _hover={{ bg: 'red.600', color: 'white', transitionDuration: '0.3s' }}
-              onClick={() => onSelect(idx + 1)}
-              display="flex"
-              flexDirection="column"
-              justifyContent="flex-start"
-              position="relative"
+              onClick={() => onSelect(idx)}
+              className='flex relative justify-start flex-col hover:bg-red-600 hover:text-white duration-300 cursor-pointer !p-4 !border'
             >
-              <Flex justifyContent="space-between" alignItems="flex-start" mb={2}>
-                <Text fontWeight="bold" flex="1" mr={4} fontSize="base">
+              <div className='flex items-start justify-between mb-2'>
+                <p className='text-base mr-4 flex-1 !font-bold'>
                   {opt.title}
-                </Text>
+                </p>
                 <Box
-                  w={10}
-                  h={10}
-                  borderRadius="none"
+                  className={`rounded-none w-10 h-10 flex items-center justify-center text-white`}
                   bg={opt.bgColor}
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  color="white"
                 >
                   <Icon size={24} />
                 </Box>
-              </Flex>
+              </div>
 
-              <Text fontSize="sm" color="gray.500">
-                {opt.description}
-              </Text>
+              <Text fontSize="sm">{opt.description}</Text>
             </Box>
           );
         })}
       </SimpleGrid>
-    </VStack>
+    </div>
   );
 };
 

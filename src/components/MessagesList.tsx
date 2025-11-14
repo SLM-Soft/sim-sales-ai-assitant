@@ -12,30 +12,19 @@ interface Props {
 }
 
 const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
+  console.log('Rendering MessagesList with messages:', messages);
   return (
-    <Box
-      ref={scrollRef}
-      flex="1 1 auto"
-      overflowY="auto"
-      px={2}
-      py={2}
-      mx={4}
-      border="1px solid"
-      borderColor="gray.200"
-    >
+    <Box px={2} py={2} className="text-white">
       <VStack gap={3} align="stretch">
         {messages.length === 0 ? (
-          <Text color="gray.500" textAlign="center">
-            Нет сообщений. Пожалуйста, выберите опцию, чтобы начать.
+          <Text textAlign="center">
+            No messages yet. Start the conversation!
           </Text>
         ) : (
           messages.map((m, i) => {
             const isUser = m.role === 'User';
             return (
-              <Flex
-                key={i}
-                justify={isUser ? 'flex-end' : 'flex-start'}
-              >
+              <Flex key={i} justify={isUser ? 'flex-end' : 'flex-start'}>
                 <Box
                   maxW="70%"
                   px={4}
@@ -45,7 +34,11 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
                   textAlign="left"
                   wordBreak="break-word"
                 >
-                  <Text fontSize="sm">
+                  <Text
+                    whiteSpace="pre-wrap"
+                    wordBreak="break-word"
+                    fontSize="sm"
+                  >
                     {m.content}
                   </Text>
                 </Box>
@@ -53,6 +46,9 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
             );
           })
         )}
+
+        {/* якорь для авто-скролла страницы */}
+        <Box ref={scrollRef} h="1px" />
       </VStack>
     </Box>
   );

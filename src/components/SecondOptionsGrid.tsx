@@ -8,7 +8,7 @@ interface Props {
 
 const SecondOptionsGrid: React.FC<Props> = ({ selected = null, onSelect }) => {
   return (
-    <SimpleGrid columns={2} gap={3}>
+    <SimpleGrid columns={2} gap={2} px={4}>
       {[1, 2, 3, 4].map((num) => (
         <Box
           key={num}
@@ -19,6 +19,7 @@ const SecondOptionsGrid: React.FC<Props> = ({ selected = null, onSelect }) => {
           alignItems="center"
           justifyContent="center"
           cursor="pointer"
+          margin={0}
           bg={selected === num ? 'red.600' : 'transparent'}
           color={selected === num ? 'white' : 'black'}
           _hover={{ bg: 'red.600', color: 'white', transitionDuration: '0.5s' }}
