@@ -1,5 +1,4 @@
 import React from 'react';
-import { SimpleGrid, Box, Text } from '@chakra-ui/react';
 
 interface Props {
   selected?: number | null;
@@ -8,27 +7,25 @@ interface Props {
 
 const SecondOptionsGrid: React.FC<Props> = ({ selected = null, onSelect }) => {
   return (
-    <SimpleGrid columns={2} gap={2} px={4}>
-      {[1, 2, 3, 4].map((num) => (
-        <Box
-          key={num}
-          p={2}
-          mx={4}
-          borderWidth="1px"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          cursor="pointer"
-          margin={0}
-          bg={selected === num ? 'red.600' : 'transparent'}
-          color={selected === num ? 'white' : 'black'}
-          _hover={{ bg: 'red.600', color: 'white', transitionDuration: '0.5s' }}
-          onClick={() => onSelect(num)}
-        >
-          <Text>Sub {num}</Text>
-        </Box>
-      ))}
-    </SimpleGrid>
+    <div className="grid grid-cols-2 gap-2 px-4">
+      {[1, 2, 3, 4].map((num) => {
+        const isActive = selected === num;
+        return (
+          <button
+            key={num}
+            type="button"
+            onClick={() => onSelect(num)}
+            className={`mx-4 flex items-center justify-center rounded border px-2 py-2 transition ${
+              isActive
+                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                : 'border-[var(--color-border)] bg-transparent text-[var(--color-text)] hover:bg-[var(--color-primary)]/10'
+            }`}
+          >
+            Sub {num}
+          </button>
+        );
+      })}
+    </div>
   );
 };
 

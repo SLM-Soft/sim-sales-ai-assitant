@@ -12,8 +12,7 @@ interface ChatState {
   // messages
   messages: ChatMessage[];
   addMessage: (msg: ChatMessage) => void;
-  startAssistantStream: () => number;
-  appendToMessage: (index: number, chunk: string) => void;
+  updateMessageContent: (index: number, content: string) => void;
   clearMessages: () => void;
 
   // select first menu option
@@ -46,31 +45,31 @@ interface ChatState {
   includeBenchmarks: boolean;
   setIncludeBenchmarks: (v: boolean) => void;
 
+  // theme
+  theme: 'dark' | 'light' | 'neutral';
+  setTheme: (v: 'dark' | 'light' | 'neutral') => void;
+
   // useful reset
   resetChat: () => void;
 }
+
+const initialTheme =
+  typeof window !== 'undefined' && window.localStorage
+    ? ((window.localStorage.getItem('theme') as 'dark' | 'light' | 'neutral' | null) || 'dark')
+    : 'dark';
 
 export const useChatStore = create<ChatState>((set) => ({
   // messages
   messages: [],
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
 
-  startAssistantStream: () => {
-    let index = -1;
-    set((s) => {
-      index = s.messages.length;
-      return { messages: [...s.messages, { role: 'Assistant', content: '' }] };
-    });
-    return index;
-  },
-
-  appendToMessage: (index, chunk) =>
+  updateMessageContent: (index, content) =>
     set((s) => {
       const arr = s.messages.slice();
       if (!arr[index]) return { messages: s.messages };
       arr[index] = {
         ...arr[index],
-        content: (arr[index].content || '') + chunk,
+        content,
       };
       return { messages: arr };
     }),
@@ -106,6 +105,15 @@ export const useChatStore = create<ChatState>((set) => ({
   includeBenchmarks: true,
   setIncludeBenchmarks: (v) => set({ includeBenchmarks: v }),
 
+  theme: initialTheme,
+  setTheme: (v) =>
+    set(() => {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('theme', v);
+      }
+      return { theme: v };
+    }),
+
   resetChat: () =>
     set({
       messages: [],
@@ -117,5 +125,9 @@ export const useChatStore = create<ChatState>((set) => ({
       maxTokens: 1024,
       level: 'brief',
       includeBenchmarks: true,
+      theme:
+        typeof window !== 'undefined' && window.localStorage
+          ? ((window.localStorage.getItem('theme') as 'dark' | 'light' | 'neutral' | null) || 'dark')
+          : 'dark',
     }),
 }));

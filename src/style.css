@@ -3,6 +3,90 @@
 @import 'tailwindcss';
 @tailwind utilities;
 
+:root {
+  --color-bg: #262626;
+  --color-surface: #262626;
+  --color-surface-muted: #2f2f2f;
+  --color-surface-highlight: #323232;
+  --color-border: #3a3a3a;
+  --color-border-strong: #1f1f1f;
+  --color-text: #f8fafc;
+  --color-text-muted: #e5e7eb;
+  --color-primary: #dc2626;
+  --color-primary-soft: #ef4444;
+  --color-primary-strong: #b91c1c;
+  --color-accent: #a855f7;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-scroll-thumb: #85000094;
+  --color-card-start: #262626;
+  --color-card-mid: #2f2f2f;
+  --color-card-end: #1f1f1f;
+}
+
+.theme-dark {
+  --color-bg: #262626;
+  --color-surface: #262626;
+  --color-surface-muted: #2f2f2f;
+  --color-surface-highlight: #323232;
+  --color-border: #3a3a3a;
+  --color-border-strong: #1f1f1f;
+  --color-text: #f8fafc;
+  --color-text-muted: #e5e7eb;
+  --color-primary: #dc2626;
+  --color-primary-soft: #ef4444;
+  --color-primary-strong: #b91c1c;
+  --color-accent: #a855f7;
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-scroll-thumb: #85000094;
+  --color-card-start: #262626;
+  --color-card-mid: #2f2f2f;
+  --color-card-end: #1f1f1f;
+}
+
+.theme-light {
+  --color-bg: #f4f4f6;
+  --color-surface: #e7e7e7;
+  --color-surface-muted: #d2d2d4;
+  --color-surface-highlight: #ffffff;
+  --color-border: #d2d2d4;
+  --color-border-strong: #c7c7c9;
+  --color-text: #1f1f24;
+  --color-text-muted: #4b5563;
+  --color-primary: #ff634a;
+  --color-primary-soft: #ff7a63;
+  --color-primary-strong: #e8553f;
+  --color-accent: #ff634a;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-scroll-thumb: rgba(255, 99, 74, 0.55);
+  --color-card-start: #f4f4f6;
+  --color-card-mid: #e7e7e7;
+  --color-card-end: #d2d2d4;
+}
+
+.theme-neutral {
+  --color-bg: #202124;
+  --color-surface: #2a2d33;
+  --color-surface-muted: #30343b;
+  --color-surface-highlight: #32363f;
+  --color-border: #3f444d;
+  --color-border-strong: #2a2d33;
+  --color-text: #e8eaed;
+  --color-text-muted: #cdd3db;
+  --color-primary: #8b5cf6;
+  --color-primary-soft: #a78bfa;
+  --color-primary-strong: #7c3aed;
+  --color-accent: #38bdf8;
+  --color-success: #22c55e;
+  --color-warning: #facc15;
+  --color-scroll-thumb: rgba(139, 92, 246, 0.5);
+  --color-card-start: #2a2d33;
+  --color-card-mid: #30343b;
+  --color-card-end: #202124;
+}
+
 
 * {
   margin: 0;
@@ -16,4 +100,152 @@ body {
   font-size: 16px;
   letter-spacing: -0.5px;
   font-weight: 400;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:hover {
+  color: var(--color-accent);
+}
+
+.chat-textarea-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.chat-textarea-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+.chat-textarea-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-scroll-thumb);
+  border-radius: 8px;
+}
+.chat-textarea-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+}
+
+.option-grid {
+  max-width: 1100px;
+}
+
+.option-card {
+  position: relative;
+  height: 190px;
+  perspective: 1200px;
+  cursor: pointer;
+}
+
+.option-card:focus-visible .option-card__surface {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.option-card__track {
+  position: relative;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.3s ease;
+}
+
+.option-card__layer {
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px;
+  transform-origin: center;
+  pointer-events: none;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+}
+
+.option-card__layer--glow {
+  filter: blur(14px);
+  opacity: 0.9;
+  transform: translateZ(-35px) translateY(8px) scale(0.9);
+  mix-blend-mode: screen;
+}
+
+.option-card__layer--grid {
+  background-image: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 2px, transparent 3px), radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.06) 0, rgba(255, 255, 255, 0.06) 3px, transparent 4px), linear-gradient(120deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(255, 255, 255, 0.05) 100%);
+  background-size: 48px 48px, 64px 64px, cover;
+  opacity: 0.4;
+  transform: translateZ(-20px) translateY(6px) scale(0.96);
+}
+
+.option-card__layer--edge {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.05));
+  opacity: 0;
+  transform: translateZ(50px) scale(1.01);
+  mix-blend-mode: screen;
+}
+
+.option-card__surface {
+  position: relative;
+  height: 100%;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid var(--color-border-strong);
+  background: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0)), radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)), linear-gradient(135deg, var(--color-card-start) 0%, var(--color-card-mid) 60%, var(--color-card-end) 100%);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  transform-style: preserve-3d;
+  transition: border-color 0.3s ease, box-shadow 0.35s ease, background-position 0.4s ease;
+}
+
+.option-card__icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.25);
+}
+
+.option-card:hover .option-card__track {
+  transform: rotateX(9deg) rotateY(-11deg) translateY(-10px) scale(1.02);
+  box-shadow: 0 26px 50px rgba(0, 0, 0, 0.58);
+}
+
+.option-card:hover .option-card__surface {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background-position: 20% 10%;
+}
+
+.option-card:hover .option-card__layer--glow {
+  transform: translateZ(-20px) translateY(2px) scale(1);
+  opacity: 1;
+}
+
+.option-card:hover .option-card__layer--grid {
+  opacity: 0.6;
+  transform: translateZ(-10px) translateY(2px) scale(1);
+}
+
+.option-card:hover .option-card__layer--edge {
+  opacity: 0.7;
+}
+
+@media (max-width: 640px) {
+  .option-card {
+    height: 180px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option-card__track,
+  .option-card__layer,
+  .option-card__surface {
+    transition: none;
+    transform: none;
+  }
+
+  .option-card:hover .option-card__track,
+  .option-card:hover .option-card__layer,
+  .option-card:hover .option-card__surface {
+    transform: none;
+  }
 }
