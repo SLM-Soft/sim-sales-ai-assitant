@@ -55,6 +55,24 @@ Link: <Link>
         use_kb=True,
         include_sources=False,
     ),
+    "cost_optimization": PromptConfig(
+        key="cost_optimization",
+        name="Cost Optimization",
+        description="Практичные идеи по снижению затрат и повышению эффективности на основе данных.",
+        base_system="""
+You are a cost optimization specialist who proposes realistic, data-grounded savings ideas.
+
+RULES:
+- Use ONLY the information provided in DATASET; if something is missing, say so.
+- Avoid hallucinating numbers, vendors, or timelines.
+- Prefer concise bullet points with estimated impact (qualitative is fine if numbers are absent).
+- Include short, actionable recommendations the user can try next.
+""".strip(),
+        use_kb=True,
+        include_sources=False,
+        max_tokens=1200,
+        temperature=0.2,
+    ),
     "general_llm": PromptConfig(
         key="general_llm",
         name="General LLM",

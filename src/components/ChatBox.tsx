@@ -22,9 +22,6 @@ const ChatBox: React.FC = () => {
     messages,
     addMessage,
     clearMessages,
-    startAssistantStream,
-    appendToMessage,
-
     firstOption,
     setFirstOption,
     input,
@@ -39,14 +36,12 @@ const ChatBox: React.FC = () => {
     setShowSettings,
   } = useChatStore();
 
-  // автоскролл к последнему сообщению — теперь скроллится вся страница
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [messages.length]);
 
-  // health-check бэкенда
   useEffect(() => {
     (async () => {
       const ok = await checkHealth();
@@ -57,7 +52,7 @@ const ChatBox: React.FC = () => {
   const handleFirstSelect = (opt: number) => setFirstOption(opt);
 
   const handleSend = async () => {
-    if (firstOption === null || !input.trim() || loading) return;
+    if (!input.trim() || loading) return;
 
     const userMessage = input.trim();
 
@@ -66,9 +61,10 @@ const ChatBox: React.FC = () => {
     setLoading(true);
 
     try {
-      const optionKey = firstOptions[firstOption].key || 'default';
-
-      const assistantIndex = startAssistantStream();
+      const optionKey =
+        firstOption !== null && firstOptions[firstOption]
+          ? firstOptions[firstOption].key
+          : 'general_llm';
 
       const resp = await sendChat({
         userQuestion: userMessage,
@@ -76,20 +72,20 @@ const ChatBox: React.FC = () => {
         sessionId: sessionIdRef.current,
       });
 
-      appendToMessage(assistantIndex, resp.outputText);
+      addMessage({ role: 'Assistant', content: resp.outputText });
     } catch (err) {
       console.error(err);
-      appendToMessage(messages.length - 1, 'Error: failed to get response');
+      addMessage({ role: 'Assistant', content: 'Error: failed to get response' });
     } finally {
       setLoading(false);
     }
   };
 
-  const showChat = firstOption !== null;
+  const hasMessages = messages.length > 0;
+  const showChat = firstOption !== null || hasMessages;
 
   return (
-    <div className="w-full max-w-[1350px] flex flex-col text-white">
-      {/* Хедер сверху, как у ChatGPT */}
+    <div className="w-full max-w-[1350px] flex flex-col" style={{ color: 'var(--color-text)' }}>
       <ChatHeader
         backendOk={backendOk}
         selected={firstOption}
@@ -99,7 +95,6 @@ const ChatBox: React.FC = () => {
         }}
       />
 
-      {/* Контентная часть: просто растёт, без собственного скролла */}
       <div className="w-full flex-1">
         {showChat ? (
           <MessagesList messages={messages} scrollRef={scrollRef} />
@@ -107,21 +102,17 @@ const ChatBox: React.FC = () => {
           <FirstOptionsGrid onSelect={handleFirstSelect} />
         )}
       </div>
-
-      {/* Sticky «футер» как у chatgpt.com */}
-      {showChat && (
-        <div className="sticky bottom-0 bg-neutral-800 !pb-4">
-          <GenerationSettings />
-          <InputRow
-            input={input}
-            setInput={setInput}
-            onSend={handleSend}
-            loading={loading}
-            showSettings={showSettings}
-            setShowSettings={setShowSettings}
-          />
-        </div>
-      )}
+      <div className="sticky bottom-0 !pb-4" style={{ background: 'var(--color-bg)' }}>
+        <GenerationSettings />
+        <InputRow
+          input={input}
+          setInput={setInput}
+          onSend={handleSend}
+          loading={loading}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+        />
+      </div>
     </div>
   );
 };

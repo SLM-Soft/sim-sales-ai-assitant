@@ -2,7 +2,7 @@ import React from 'react';
 import { FiSettings } from 'react-icons/fi';
 import { useChatStore } from '../store/chatStore';
 
-const RED = '#dc2626';
+const ACCENT = 'var(--color-primary)';
 const snap = (v: number, step: number) => Math.round(v / step) * step;
 const round10 = (v: number) => Math.round(v * 10) / 10;
 
@@ -30,7 +30,7 @@ const RangeRow: React.FC<{
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         onWheel={(e) => e.currentTarget.blur()}
-        style={{ width: '100%', marginTop: 6, accentColor: RED }}
+        style={{ width: '100%', marginTop: 6, accentColor: ACCENT }}
       />
     </div>
   );
@@ -61,29 +61,32 @@ const GenerationSettings: React.FC = () => {
         gap: 14,
         marginBottom: 12,
         padding: 14,
-        border: '1px solid rgba(0,0,0,0.15)',
+        border: '1px solid var(--color-border)',
+        background: 'var(--color-surface-muted)',
+        color: 'var(--color-text)',
       }}
-      className='text-black bg-white'
+      className=''
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <FiSettings size={18} />
-        <strong style={{ fontSize: 14 }}>Generation settings</strong>
+        <strong style={{ fontSize: 14, color: 'var(--color-text)' }}>Generation settings</strong>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', rowGap: 8 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          <label style={{ fontSize: 12, fontWeight: 600 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)' }}>
             Level
             <select
               value={level}
               onChange={(e) => setLevel(e.target.value as typeof level)}
               style={{
                 marginLeft: 8,
-                border: '1px solid rgba(0,0,0,0.15)',
+                border: '1px solid var(--color-border)',
                 borderRadius: 6,
                 padding: '6px 8px',
                 fontSize: 13,
-                background: 'white',
+                background: 'var(--color-surface-highlight)',
+                color: 'var(--color-text)',
               }}
             >
               <option value="brief">brief</option>
@@ -91,7 +94,7 @@ const GenerationSettings: React.FC = () => {
             </select>
           </label>
 
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text)' }}>
             <input
               type="checkbox"
               checked={includeBenchmarks}

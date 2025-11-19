@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { SimpleGrid, Button } from '@chakra-ui/react';
 
 interface Option {
   label: string;
@@ -14,18 +13,18 @@ interface Props {
 
 const OptionsGrid: React.FC<Props> = ({ options, onOptionClick }) => {
   return (
-    <SimpleGrid columns={{ base: 1, md: 2 }} gap={3} mb={4}>
+    <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
       {options.map((opt) => (
-        <Button
+        <button
           key={opt.value}
+          type="button"
           onClick={() => onOptionClick(opt.value)}
-          variant="outline"
-          whiteSpace="normal"
+          className="rounded border border-[var(--color-border)] px-4 py-3 text-left text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
         >
           {opt.label}
-        </Button>
+        </button>
       ))}
-    </SimpleGrid>
+    </div>
   );
 };
 
