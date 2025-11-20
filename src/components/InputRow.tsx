@@ -78,7 +78,7 @@ const InputRow: React.FC<Props> = ({
           <button
             type="button"
             aria-label="Send message"
-            onClick={onSend}
+            onClick={() => onSend()}
             disabled={disabled || loading}
             className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-[var(--color-primary)] text-white transition hover:bg-[var(--color-primary-soft)] active:bg-[var(--color-primary-strong)] disabled:opacity-70"
           >

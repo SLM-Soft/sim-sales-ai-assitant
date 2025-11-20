@@ -5,7 +5,7 @@ import FirstOptionsGrid from './FirstOptionsGrid';
 import InputRow from './InputRow';
 import GenerationSettings from './GenerationSettings';
 import { checkHealth, sendChat } from '../api/bedrock';
-import { firstOptions } from '../mock';
+import { firstOptions, suggestionByOption } from '../mock';
 import { useChatStore } from '../store/chatStore';
 
 const ChatBox: React.FC = () => {
@@ -51,20 +51,25 @@ const ChatBox: React.FC = () => {
 
   const handleFirstSelect = (opt: number) => setFirstOption(opt);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
+  const resolveOptionKey = () => {
+    if (firstOption !== null && firstOptions[firstOption]) {
+      return firstOptions[firstOption].key;
+    }
+    return 'general_llm';
+  };
 
-    const userMessage = input.trim();
+  const handleSend = async (textOverride?: string) => {
+    const messageToSend = typeof textOverride === 'string' ? textOverride : input;
+    if (!messageToSend.trim() || loading) return;
+
+    const userMessage = messageToSend.trim();
 
     addMessage({ role: 'User', content: userMessage });
     setInput('');
     setLoading(true);
 
     try {
-      const optionKey =
-        firstOption !== null && firstOptions[firstOption]
-          ? firstOptions[firstOption].key
-          : 'general_llm';
+      const optionKey = resolveOptionKey();
 
       const resp = await sendChat({
         userQuestion: userMessage,
@@ -72,7 +77,10 @@ const ChatBox: React.FC = () => {
         sessionId: sessionIdRef.current,
       });
 
-      addMessage({ role: 'Assistant', content: resp.outputText });
+      addMessage({
+        role: 'Assistant',
+        content: resp.outputText,
+      });
     } catch (err) {
       console.error(err);
       addMessage({ role: 'Assistant', content: 'Error: failed to get response' });
@@ -81,8 +89,16 @@ const ChatBox: React.FC = () => {
     }
   };
 
+  const handleQuickAsk = async (question: string) => {
+    if (loading) return;
+    setInput(question);
+    await handleSend(question);
+  };
+
   const hasMessages = messages.length > 0;
   const showChat = firstOption !== null || hasMessages;
+  const optionKey = resolveOptionKey();
+  const suggestionList = suggestionByOption[optionKey] || suggestionByOption.general_llm;
 
   return (
     <div className="w-full max-w-[1350px] flex flex-col" style={{ color: 'var(--color-text)' }}>
@@ -103,6 +119,25 @@ const ChatBox: React.FC = () => {
         )}
       </div>
       <div className="sticky bottom-0 !pb-4" style={{ background: 'var(--color-bg)' }}>
+        {!messages.length && (
+          <div className="flex w-full justify-center">
+            {suggestionList.length > 0 && (
+              <div className="flex flex-wrap gap-2 !mb-3">
+                {suggestionList.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleQuickAsk(q)}
+                    className="rounded-full border border-[var(--color-border)] bg-[var(--color-surface-muted)] !px-3 !py-1.5 text-sm text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-60"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         <GenerationSettings />
         <InputRow
           input={input}
