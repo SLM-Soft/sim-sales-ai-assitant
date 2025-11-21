@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { FiCopy, FiCheck, FiEdit2, FiSave, FiX } from 'react-icons/fi';
 import { useChatStore } from '../store/chatStore';
 
@@ -176,10 +178,55 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
                           </button>
                         </div>
                       </>
-                    ) : (
+                    ) : isUser ? (
                       <p className="whitespace-pre-wrap text-base leading-relaxed !py-2 !px-4">
                         {renderWithLinks(m.content)}
                       </p>
+                    ) : (
+                      <div className="markdown-body text-base leading-relaxed !py-2 !px-4">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          components={{
+                            a: ({ ...props }) => (
+                              <a
+                                {...props}
+                                className="text-[var(--color-accent)] underline underline-offset-2 hover:opacity-80"
+                                target="_blank"
+                                rel="noreferrer"
+                              />
+                            ),
+                            table: ({ ...props }) => (
+                              <div className="overflow-x-auto">
+                                <table
+                                  {...props}
+                                  className="w-full border-collapse text-left"
+                                  style={{ borderColor: 'var(--color-border)' }}
+                                />
+                              </div>
+                            ),
+                            th: ({ ...props }) => (
+                              <th
+                                {...props}
+                                className="border !px-3 !py-2"
+                                style={{ borderColor: 'var(--color-border)' }}
+                              />
+                            ),
+                            td: ({ ...props }) => (
+                              <td
+                                {...props}
+                                className="border !px-3 !py-2 align-top"
+                                style={{ borderColor: 'var(--color-border)' }}
+                              />
+                            ),
+                            p: ({ ...props }) => <p {...props} className="!mb-3 last:mb-0" />,
+                            ul: ({ ...props }) => <ul {...props} className="list-disc !pl-5 !mb-3" />,
+                            ol: ({ ...props }) => <ol {...props} className="list-decimal !pl-5 !mb-3" />,
+                            li: ({ ...props }) => <li {...props} className="!mb-1 last:mb-0" />,
+                          }}
+                        >
+                          {m.content}
+                        </ReactMarkdown>
+                      </div>
                     )}
                   </div>
 
