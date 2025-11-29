@@ -72,7 +72,11 @@ const ChatBox: React.FC = () => {
         sessionId: sessionIdRef.current,
       });
 
-      addMessage({ role: 'Assistant', content: resp.outputText });
+      addMessage({
+        role: 'Assistant',
+        content: resp.outputText,
+        attachment: resp.attachment ?? undefined,
+      });
     } catch (err) {
       console.error(err);
       addMessage({ role: 'Assistant', content: 'Error: failed to get response' });

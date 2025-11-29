@@ -5,6 +5,11 @@ import { useChatStore } from '../store/chatStore';
 interface Msg {
   role: string;
   content: string;
+  attachment?: {
+    fileName: string;
+    mimeType: string;
+    base64: string;
+  } | null;
 }
 
 interface Props {
@@ -110,6 +115,29 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
     }
   }, [draftContent, editingIdx, adjustEditHeight]);
 
+  const downloadAttachment = (att: NonNullable<Msg['attachment']>) => {
+    if (!att?.base64) return;
+    try {
+      const byteChars = atob(att.base64);
+      const byteNumbers = new Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i += 1) {
+        byteNumbers[i] = byteChars.charCodeAt(i);
+      }
+      const blob = new Blob([new Uint8Array(byteNumbers)], { type: att.mimeType || 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = att.fileName || 'attachment.pdf';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Failed to download attachment', error);
+    }
+  };
+
   return (
     <div className="px-4 py-4 text-[var(--color-text)]">
       <div className="flex flex-col gap-4">
@@ -125,7 +153,7 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
             return (
               <div key={i} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
                 <div
-                  className="flex w-full max-w-[80%] flex-col"
+                  className={`flex w-full ${isUser ? 'max-w-fit' : 'max-w-full'} flex-col`}
                   style={{ alignItems: isUser ? 'flex-end' : 'flex-start' }}
                 >
                   <div
@@ -180,6 +208,22 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
                       <p className="whitespace-pre-wrap text-base leading-relaxed !py-2 !px-4">
                         {renderWithLinks(m.content)}
                       </p>
+                    )}
+
+                    {!isUser && m.attachment?.base64 && editingIdx !== i && (
+                      <div className="!m-4 w-fit gap-10 flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] !px-4 !py-3 text-sm text-[var(--color-text)] shadow-[0_8px_20px_rgba(15,23,42,0.12)]">
+                        <div className="flex flex-col">
+                          <span className="font-medium">PDF ready for download</span>
+                          <span className="text-[var(--color-text-muted)]">{m.attachment.fileName}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => downloadAttachment(m.attachment!)}
+                          className="rounded-full bg-[var(--color-primary)] !px-4 !py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                        >
+                          Download PDF
+                        </button>
+                      </div>
                     )}
                   </div>
 
