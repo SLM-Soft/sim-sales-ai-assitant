@@ -19,14 +19,13 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 @router.post("", response_model=ChatResponse)
 def chat_handler(payload: ChatRequest) -> ChatResponse:
     """
-    Обычный (не стриминговый) ответ.
+    Обработчик обычного чата (одним ответом).
     """
     try:
         cfg = get_prompt_config(payload.optionKey)
         if not cfg:
             raise HTTPException(status_code=400, detail=f"Unknown optionKey: {payload.optionKey}")
 
-        # 1) KB retrieval (если нужно)
         dataset = None
         if cfg.use_kb:
             chunks = retrieve_kb_chunks(payload.userQuestion, k=8)
@@ -35,13 +34,14 @@ def chat_handler(payload: ChatRequest) -> ChatResponse:
                 include_sources=cfg.include_sources,
             )
 
-        # 2) System prompt
         system_prompt = build_system_prompt(cfg, dataset)
+        user_prompt = (
+            "User question is below. If the user asks for PDF, provide the full content for the PDF.\n"
+            "Do not say you cannot generate PDFs; the system will create the PDF file from your text.\n"
+            "If asked for PDF, reply ONLY with the PDF-ready body (no intro, no apologies).\n"
+            f"User question:\n\"\"\"{payload.userQuestion}\"\"\""
+        )
 
-        # 3) User prompt
-        user_prompt = f"User question:\n\"\"\"{payload.userQuestion}\"\"\""
-
-        # 4) Вызов LLM
         answer = call_llm_claude(
             system_prompt=system_prompt,
             user_prompt=user_prompt,
@@ -68,8 +68,7 @@ def chat_handler(payload: ChatRequest) -> ChatResponse:
 @router.post("/stream")
 def chat_stream_handler(payload: ChatRequest):
     """
-    Стриминговый ответ (chunk by chunk).
-    Возвращает text/plain, можно читать по кусочкам на фронте.
+    Обработчик потокового чата (chunk by chunk).
     """
     try:
         cfg = get_prompt_config(payload.optionKey)
@@ -85,7 +84,12 @@ def chat_stream_handler(payload: ChatRequest):
             )
 
         system_prompt = build_system_prompt(cfg, dataset)
-        user_prompt = f"User question:\n\"\"\"{payload.userQuestion}\"\"\""
+        user_prompt = (
+            "User question is below. If the user asks for PDF, provide the full content for the PDF.\n"
+            "Do not say you cannot generate PDFs; the system will create the PDF file from your text.\n"
+            "If asked for PDF, reply ONLY with the PDF-ready body (no intro, no apologies).\n"
+            f"User question:\n\"\"\"{payload.userQuestion}\"\"\""
+        )
 
         def _gen():
             for chunk in stream_llm_claude(

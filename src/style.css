@@ -50,7 +50,7 @@
   --color-surface: #e7e7e7;
   --color-surface-muted: #d2d2d4;
   --color-surface-highlight: #ffffff;
-  --color-border: #d2d2d4;
+  --color-border: #d8a7a773;
   --color-border-strong: #c7c7c9;
   --color-text: #1f1f24;
   --color-text-muted: #4b5563;
@@ -244,8 +244,50 @@ button:hover {
   }
 
   .option-card:hover .option-card__track,
-  .option-card:hover .option-card__layer,
-  .option-card:hover .option-card__surface {
-    transform: none;
+.option-card:hover .option-card__layer,
+.option-card:hover .option-card__surface {
+  transform: none;
+}
+}
+
+.markdown-body {
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.markdown-body pre {
+  background: var(--color-surface-highlight);
+  border: 1px solid var(--color-border);
+  padding: 10px 12px;
+  border-radius: 12px;
+  overflow: auto;
+}
+
+.markdown-body code {
+  background: var(--color-surface-highlight);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pdf-export h1,
+.pdf-export h2,
+.pdf-export h3 {
+  line-height: 1.35;
 }
