@@ -3,16 +3,9 @@ import { create } from 'zustand';
 export type Role = 'User' | 'Assistant';
 export type Level = 'brief' | 'detailed';
 
-export interface Attachment {
-  fileName: string;
-  mimeType: string;
-  base64: string;
-}
-
 export interface ChatMessage {
   role: Role;
   content: string;
-  attachment?: Attachment | null;
 }
 
 interface ChatState {

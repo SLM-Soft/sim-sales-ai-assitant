@@ -8,7 +8,6 @@ fastapi==0.119.0
 h11==0.16.0
 httptools==0.7.1
 idna==3.11
-fpdf2==2.8.2
 jmespath==1.0.1
 pydantic==2.12.2
 pydantic_core==2.41.4

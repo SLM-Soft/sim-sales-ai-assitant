@@ -7,9 +7,11 @@ import GenerationSettings from './GenerationSettings';
 import { checkHealth, sendChat } from '../api/bedrock';
 import { firstOptions, suggestionByOption } from '../mock';
 import { useChatStore } from '../store/chatStore';
+import { exportElementToPdf } from '../utils/pdfExport';
 
 const ChatBox: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const conversationRef = useRef<HTMLDivElement | null>(null);
 
   const genSessionId = () =>
     typeof crypto !== 'undefined' && crypto.randomUUID
@@ -34,7 +36,21 @@ const ChatBox: React.FC = () => {
 
     showSettings,
     setShowSettings,
+    theme,
   } = useChatStore();
+  const [exportingChat, setExportingChat] = React.useState(false);
+
+  const sanitizeAssistantText = (text: string) => {
+    if (!text) return text;
+    const lines = text.split('\n').filter((line) => {
+      const lower = line.toLowerCase();
+      const hasPdf = lower.includes('pdf');
+      const hasInstruction =
+        lower.includes('download') || lower.includes('click') || lower.includes('button');
+      return !(hasPdf && hasInstruction);
+    });
+    return lines.join('\n').trim();
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -77,10 +93,10 @@ const ChatBox: React.FC = () => {
         sessionId: sessionIdRef.current,
       });
 
+      const cleanText = sanitizeAssistantText(resp.outputText);
       addMessage({
         role: 'Assistant',
-        content: resp.outputText,
-        attachment: resp.attachment ?? undefined,
+        content: cleanText,
       });
     } catch (err) {
       console.error(err);
@@ -94,6 +110,23 @@ const ChatBox: React.FC = () => {
     if (loading) return;
     setInput(question);
     await handleSend(question);
+  };
+
+  const handleExportChat = async () => {
+    if (!messages.length || exportingChat) return;
+    try {
+      setExportingChat(true);
+      if (conversationRef.current) {
+        await exportElementToPdf(conversationRef.current, {
+          fileName: 'chat-history.pdf',
+          theme,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to export chat PDF', error);
+    } finally {
+      setExportingChat(false);
+    }
   };
 
   const hasMessages = messages.length > 0;
@@ -110,14 +143,19 @@ const ChatBox: React.FC = () => {
           setFirstOption(null);
           clearMessages();
         }}
+        onExportChat={handleExportChat}
+        exportingChat={exportingChat}
+        canExportChat={messages.length > 0}
       />
 
       <div className="w-full flex-1">
-        {showChat ? (
-          <MessagesList messages={messages} scrollRef={scrollRef} />
-        ) : (
-          <FirstOptionsGrid onSelect={handleFirstSelect} />
-        )}
+        <div ref={conversationRef} className="w-full flex-1">
+          {showChat ? (
+            <MessagesList messages={messages} scrollRef={scrollRef} />
+          ) : (
+            <FirstOptionsGrid onSelect={handleFirstSelect} />
+          )}
+        </div>
       </div>
       <div className="sticky bottom-0 !pb-4" style={{ background: 'var(--color-bg)' }}>
         {!messages.length && (

@@ -8,18 +8,12 @@ export interface ChatMessage {
   content: string;
 }
 
-export interface Attachment {
-  fileName: string;
-  mimeType: string;
-  base64: string;
-}
-
 // ---------- Chat Completion ----------
 export async function sendChat(params: {
   userQuestion: string;
   optionKey: string; // sales | project_analysis | general_llm
   sessionId?: string;
-}): Promise<{ outputText: string; attachment?: Attachment | null }> {
+}): Promise<{ outputText: string }> {
   const resp = await axios.post(`${config.apiBaseUrl}/chat`, params);
 
   if (!resp.data || !resp.data.outputText) {
@@ -28,7 +22,6 @@ export async function sendChat(params: {
 
   return {
     outputText: resp.data.outputText,
-    attachment: resp.data.attachment ?? null,
   };
 }
 
