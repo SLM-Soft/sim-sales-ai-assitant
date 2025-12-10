@@ -13,6 +13,7 @@ export async function sendChat(params: {
   userQuestion: string;
   optionKey: string; // sales | project_analysis | general_llm
   sessionId?: string;
+  messages?: ChatMessage[];
 }): Promise<{ outputText: string }> {
   const resp = await axios.post(`${config.apiBaseUrl}/chat`, params);
 

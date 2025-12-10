@@ -79,6 +79,7 @@ const ChatBox: React.FC = () => {
     if (!messageToSend.trim() || loading) return;
 
     const userMessage = messageToSend.trim();
+    const conversationMessages = [...messages, { role: 'User', content: userMessage }];
 
     addMessage({ role: 'User', content: userMessage });
     setInput('');
@@ -91,6 +92,7 @@ const ChatBox: React.FC = () => {
         userQuestion: userMessage,
         optionKey,
         sessionId: sessionIdRef.current,
+        messages: conversationMessages,
       });
 
       const cleanText = sanitizeAssistantText(resp.outputText);

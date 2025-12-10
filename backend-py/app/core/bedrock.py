@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import List, Dict, Any, Optional, Generator
+from typing import Any, Dict, Generator, List, Optional
 from urllib.parse import urlparse
 
 import boto3
@@ -9,13 +9,13 @@ import boto3
 from app.config import settings
 
 
-# ---------- Boto3 session & клиенты ----------
+# ---------- Boto3 session & clients ----------
 
 
 def _make_session() -> boto3.Session:
     """
-    Создаём сессию с учётом явных ключей (локально)
-    и дефолтных провайдеров (EC2/ECS/SSO и т.п.).
+    Create a boto3 session.
+    Prefers explicit AWS keys; falls back to profile or instance role.
     """
     if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
         return boto3.Session(
@@ -46,13 +46,12 @@ def s3_client():
 
 def presign_s3(s3_uri: str, expires_in: int = 3600) -> str:
     """
-    Делает из s3://bucket/key временный HTTPS URL.
+    Convert s3://bucket/key into a temporary HTTPS URL.
     """
     if not s3_uri:
         return ""
 
     parsed = urlparse(s3_uri)
-    # ожидаем формат s3://bucket/key
     if parsed.scheme != "s3" or not parsed.netloc or not parsed.path:
         return ""
 
@@ -68,7 +67,7 @@ def presign_s3(s3_uri: str, expires_in: int = 3600) -> str:
     return url
 
 
-# ---------- Retrieval из Knowledge Base ----------
+# ---------- Retrieval from Knowledge Base ----------
 
 
 def retrieve_kb_chunks(
@@ -77,12 +76,12 @@ def retrieve_kb_chunks(
     kb_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Достаём топ-K чанков из Bedrock Knowledge Base.
-    Формат каждого чанка: { "text": "...", "score": float, "s3_uri": Optional[str] }
+    Retrieve top-k chunks from Bedrock Knowledge Base.
+    Returns [{"text": str, "score": float, "s3_uri": Optional[str]}, ...].
     """
     kb_id = kb_id or settings.BEDROCK_KB_ID
     if not kb_id:
-        return []
+        raise ValueError("Knowledge Base ID is not configured (set BEDROCK_KB_ID).")
 
     client = kb_client()
 
@@ -121,12 +120,9 @@ def build_dataset_block(
     include_sources: bool = False,
 ) -> str:
     """
-    Превращаем чанки KB в один текстовый блок для system prompt.
-
-    Если include_sources=True, добавляет строки Source: <presigned S3 URL>.
+    Render retrieved KB chunks into a text block for the system prompt.
     """
     if not chunks:
-        # важно: совпадает с текстом в правилах для sales-промпта
         return "No relevant documents found in the Knowledge Base for this query."
 
     blocks: List[str] = []
@@ -138,13 +134,10 @@ def build_dataset_block(
         if include_sources:
             if s3_uri:
                 presigned = presign_s3(s3_uri)
-                if presigned:
-                    source_line = f"Source: {presigned}\n"
-                else:
-                    source_line = "Source: (unavailable)\n"
+                source_line = f"Source: {presigned}\n" if presigned else "Source: (unavailable)\n"
 
         block = f"[Doc {i}]\n"
-        if include_sources:
+        if include_sources and source_line:
             block += source_line
         block += f"Excerpt:\n{text}"
         blocks.append(block)
@@ -152,19 +145,35 @@ def build_dataset_block(
     return "\n\n".join(blocks)
 
 
-# ---------- Вызов Claude (Anthropic) через Bedrock ----------
+def _normalize_messages(messages: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    """
+    Keep only user/assistant messages with non-empty content and normalize roles.
+    """
+    formatted: List[Dict[str, str]] = []
+    for msg in messages:
+        role = (msg.get("role") or "").lower()
+        content = (msg.get("content") or "").strip()
+        if not content or role not in ("user", "assistant"):
+            continue
+        formatted.append({"role": role, "content": content})
+
+    if not formatted:
+        raise ValueError("At least one user message is required for the model call")
+    return formatted
+
+
+# ---------- Invoke Claude (Anthropic) via Bedrock ----------
 
 
 def call_llm_claude(
     system_prompt: str,
-    user_prompt: str,
+    messages: List[Dict[str, str]],
     *,
     max_tokens: int = 900,
     temperature: float = 0.0,
 ) -> str:
     """
-    Нестрриминговый вызов Claude 3.x через Bedrock Runtime
-    в нативном формате AWS для Anthropic.
+    Non-streaming invocation of Claude 3.x on Bedrock Runtime.
     """
     client = llm_client()
 
@@ -172,20 +181,9 @@ def call_llm_claude(
         "anthropic_version": "bedrock-2023-05-31",
         "max_tokens": max_tokens,
         "temperature": temperature,
-        # system — строка
         "system": system_prompt,
-        # messages — массив, content — строка
-        "messages": [
-            {
-                "role": "user",
-                "content": user_prompt,
-            }
-        ],
+        "messages": _normalize_messages(messages),
     }
-
-    # debug при необходимости:
-    # print("DEBUG MODEL:", settings.BEDROCK_MODEL_ID)
-    # print("DEBUG BODY:", json.dumps(body, indent=2, ensure_ascii=False))
 
     resp = client.invoke_model(
         modelId=settings.BEDROCK_MODEL_ID,
@@ -207,14 +205,13 @@ def call_llm_claude(
 
 def stream_llm_claude(
     system_prompt: str,
-    user_prompt: str,
+    messages: List[Dict[str, str]],
     *,
     max_tokens: int = 900,
     temperature: float = 0.0,
 ) -> Generator[str, None, None]:
     """
-    Стриминговый вызов Claude 3.x через Bedrock Runtime (chunk by chunk).
-    Можно оборачивать в StreamingResponse.
+    Streaming invocation of Claude 3.x on Bedrock Runtime.
     """
     client = llm_client()
 
@@ -223,12 +220,7 @@ def stream_llm_claude(
         "max_tokens": max_tokens,
         "temperature": temperature,
         "system": system_prompt,
-        "messages": [
-            {
-                "role": "user",
-                "content": user_prompt,
-            }
-        ],
+        "messages": _normalize_messages(messages),
     }
 
     resp = client.invoke_model_with_response_stream(
