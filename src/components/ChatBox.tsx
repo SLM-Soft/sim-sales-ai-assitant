@@ -79,9 +79,10 @@ const ChatBox: React.FC = () => {
     if (!messageToSend.trim() || loading) return;
 
     const userMessage = messageToSend.trim();
-    const conversationMessages = [...messages, { role: 'User', content: userMessage }];
+    const userChatMessage = { role: 'User', content: userMessage } as const;
+    const conversationMessages = [...messages, userChatMessage];
 
-    addMessage({ role: 'User', content: userMessage });
+    addMessage(userChatMessage);
     setInput('');
     setLoading(true);
 
@@ -136,15 +137,21 @@ const ChatBox: React.FC = () => {
   const optionKey = resolveOptionKey();
   const suggestionList = suggestionByOption[optionKey] || suggestionByOption.general_llm;
 
+  const handleNewChat = () => {
+    clearMessages();
+    setFirstOption(null);
+    setInput('');
+    sessionIdRef.current = genSessionId();
+  };
+
   return (
     <div className="w-full max-w-[1350px] flex flex-col" style={{ color: 'var(--color-text)' }}>
       <ChatHeader
         backendOk={backendOk}
         selected={firstOption}
-        onBack={() => {
-          setFirstOption(null);
-          clearMessages();
-        }}
+        hasMessages={hasMessages}
+        loading={loading}
+        onNewChat={handleNewChat}
         onExportChat={handleExportChat}
         exportingChat={exportingChat}
         canExportChat={messages.length > 0}

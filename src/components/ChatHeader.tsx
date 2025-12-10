@@ -1,13 +1,15 @@
 import React from "react";
-import { FaArrowLeft, FaFileDownload } from "react-icons/fa";
-import { FiMoon, FiSun, FiAperture, FiLoader } from "react-icons/fi";
+import { FaFileDownload } from "react-icons/fa";
+import { FiMoon, FiSun, FiAperture, FiLoader, FiPlusCircle } from "react-icons/fi";
 import { firstOptions } from "../mock";
 import { useChatStore } from "../store/chatStore";
 
 interface Props {
   backendOk: boolean | null;
   selected?: number | null;
-  onBack?: () => void;
+  hasMessages?: boolean;
+  onNewChat?: () => void;
+  loading?: boolean;
   onExportChat?: () => void;
   exportingChat?: boolean;
   canExportChat?: boolean;
@@ -16,13 +18,14 @@ interface Props {
 const ChatHeader: React.FC<Props> = ({
   backendOk,
   selected,
-  onBack,
+  hasMessages,
+  onNewChat,
+  loading,
   onExportChat,
   exportingChat,
   canExportChat,
 }) => {
-  const opt =
-    selected !== null && selected !== undefined ? firstOptions[selected] : null;
+  const opt = selected !== null && selected !== undefined ? firstOptions[selected] : null;
   const { theme, setTheme } = useChatStore();
   const themeOptions: Array<{
     key: "dark" | "light" | "neutral";
@@ -46,25 +49,29 @@ const ChatHeader: React.FC<Props> = ({
       <div className="flex items-center gap-3 px-3 justify-between flex-wrap">
         <div className="flex items-center gap-3">
           {backendOk ? (
-            <div
-              className="w-4 h-4 rounded-full"
-              style={{ background: "var(--color-success)" }}
-            />
+            <div className="w-4 h-4 rounded-full" style={{ background: "var(--color-success)" }} />
           ) : (
-            <div
-              className="w-4 h-4 rounded-full"
-              style={{ background: "var(--color-primary)" }}
-            />
+            <div className="w-4 h-4 rounded-full" style={{ background: "var(--color-primary)" }} />
           )}
-          <span
-            className="!text-lg !font-semibold"
-            style={{ color: "var(--color-text)" }}
-          >
+          <span className="!text-lg !font-semibold" style={{ color: "var(--color-text)" }}>
             SLM Business Assistant
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          {hasMessages && onNewChat ? (
+            <button
+              type="button"
+              onClick={onNewChat}
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)] !px-4 !py-2 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] transition hover:shadow-[0_12px_34px_rgba(0,0,0,0.24)] disabled:opacity-70 disabled:cursor-not-allowed"
+              style={{ border: "1px solid rgba(255,255,255,0.08)" }}
+            >
+              <FiPlusCircle size={18} />
+              <span className="hidden sm:inline">Create new chat</span>
+            </button>
+          ) : null}
+
           <div
             style={{
               display: "inline-flex",
@@ -90,9 +97,7 @@ const ChatHeader: React.FC<Props> = ({
                     background: active ? "var(--color-primary)" : "transparent",
                     color: active ? "#fff" : "var(--color-text)",
                     border: "none",
-                    boxShadow: active
-                      ? "0 0 0 1px rgba(255,255,255,0.16)"
-                      : "none",
+                    boxShadow: active ? "0 0 0 1px rgba(255,255,255,0.16)" : "none",
                     cursor: "pointer",
                   }}
                 >
@@ -108,13 +113,9 @@ const ChatHeader: React.FC<Props> = ({
                 disabled={exportingChat}
                 className="inline-flex items-center justify-center rounded-full bg-[var(--color-surface-muted)] !px-3 !py-2 text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-60"
                 title="Export chat"
-                aria-label="Expoer chat"
+                aria-label="Export chat"
               >
-                {exportingChat ? (
-                  <FiLoader size={18} className="spin" />
-                ) : (
-                  <FaFileDownload size={18} />
-                )}
+                {exportingChat ? <FiLoader size={18} className="spin" /> : <FaFileDownload size={18} />}
               </button>
             ) : null}
           </div>
@@ -123,21 +124,8 @@ const ChatHeader: React.FC<Props> = ({
 
       {opt && (
         <div className="flex items-center gap-3 px-1">
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="w-5 h-5 flex items-center justify-center transition-colors rounded text-[var(--color-text)] hover:text-[var(--color-accent)]"
-            >
-              <FaArrowLeft size={20} />
-            </button>
-          )}
-
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 flex items-center justify-center"
-              style={{ color: opt.bgColor }}
-            >
+            <div className="w-10 h-10 flex items-center justify-center" style={{ color: opt.bgColor }}>
               <opt.icon size={24} />
             </div>
             <p className="font-semibold" style={{ color: "var(--color-text)" }}>
