@@ -45,7 +45,7 @@ const InputRow: React.FC<Props> = ({
   }, [input]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && !disabled) {
+    if (e.key === 'Enter' && !e.shiftKey && !disabled && !loading) {
       e.preventDefault();
       onSend();
     }
@@ -61,7 +61,7 @@ const InputRow: React.FC<Props> = ({
           onKeyDown={handleKeyDown}
           onInput={adjustHeight}
           placeholder={disabled ? 'Please choose an option' : 'Write a message...'}
-          disabled={disabled || loading}
+          // disabled={disabled || loading}
           style={{ paddingRight: '120px' }}
           className="chat-textarea-scroll w-full min-h-[56px] resize-none rounded-md border border-[var(--color-border)] bg-[var(--color-surface-muted)] !p-4 text-[var(--color-text)] outline-none transition-colors placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:shadow-[0_0_0_1px_var(--color-primary)]"
         />

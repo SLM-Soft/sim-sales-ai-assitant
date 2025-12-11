@@ -1,12 +1,6 @@
 import { create } from 'zustand';
-
-export type Role = 'User' | 'Assistant';
+import type { ChatMessage } from '../api/bedrock';
 export type Level = 'brief' | 'detailed';
-
-export interface ChatMessage {
-  role: Role;
-  content: string;
-}
 
 interface ChatState {
   // messages

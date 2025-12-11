@@ -2,9 +2,10 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FiCopy, FiCheck, FiEdit2, FiSave, FiX } from "react-icons/fi";
-import { useChatStore, type ChatMessage } from "../store/chatStore";
+import { useChatStore } from "../store/chatStore";
 import { exportMarkdownToPdf } from "../utils/pdfExport";
 import { FaFileDownload } from "react-icons/fa";
+import type { ChatMessage } from "../api/bedrock";
 
 interface Props {
   messages: ChatMessage[];
