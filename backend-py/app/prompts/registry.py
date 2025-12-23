@@ -89,7 +89,7 @@ After acknowledging missing KB evidence, you may give generic best-practice guid
 Keep replies concise and actionable.
 """.strip(),
         use_kb=True,
-        max_tokens=700,
+        max_tokens=2000,
         temperature=0.3,
     ),
 }
