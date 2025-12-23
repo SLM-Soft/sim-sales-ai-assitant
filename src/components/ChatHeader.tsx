@@ -71,6 +71,18 @@ const ChatHeader: React.FC<Props> = ({
               <span className="hidden sm:inline">Create new chat</span>
             </button>
           ) : null}
+          {onExportChat && canExportChat ? (
+            <button
+              type="button"
+              onClick={onExportChat}
+              disabled={exportingChat}
+              className="inline-flex items-center justify-center rounded-full bg-[var(--color-surface-muted)] !px-3 !py-2 text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-60"
+              title="Export chat"
+              aria-label="Export chat"
+            >
+              {exportingChat ? <FiLoader size={18} className="spin" /> : <FaFileDownload size={18} />}
+            </button>
+          ) : null}
 
           <div
             style={{
@@ -106,18 +118,6 @@ const ChatHeader: React.FC<Props> = ({
                 </button>
               );
             })}
-            {onExportChat && canExportChat ? (
-              <button
-                type="button"
-                onClick={onExportChat}
-                disabled={exportingChat}
-                className="inline-flex items-center justify-center rounded-full bg-[var(--color-surface-muted)] !px-3 !py-2 text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-60"
-                title="Export chat"
-                aria-label="Export chat"
-              >
-                {exportingChat ? <FiLoader size={18} className="spin" /> : <FaFileDownload size={18} />}
-              </button>
-            ) : null}
           </div>
         </div>
       </div>

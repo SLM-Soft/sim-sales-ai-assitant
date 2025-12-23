@@ -12,7 +12,6 @@ import { exportElementToPdf } from '../utils/pdfExport';
 const ChatBox: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const conversationRef = useRef<HTMLDivElement | null>(null);
-
   const genSessionId = () =>
     typeof crypto !== 'undefined' && crypto.randomUUID
       ? crypto.randomUUID()
@@ -74,13 +73,38 @@ const ChatBox: React.FC = () => {
     return 'general_llm';
   };
 
+  const triggerPdfDownload = (pdfBase64: string, fileName: string) => {
+    try {
+      const byteCharacters = atob(pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i += 1) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download PDF', err);
+    }
+  };
+
   const handleSend = async (textOverride?: string) => {
     const messageToSend = typeof textOverride === 'string' ? textOverride : input;
     if (!messageToSend.trim() || loading) return;
 
     const userMessage = messageToSend.trim();
     const userChatMessage = { role: 'User', content: userMessage } as const;
-    const conversationMessages = [...messages, userChatMessage];
+    const conversationMessages = [...messages, userChatMessage].map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
     addMessage(userChatMessage);
     setInput('');
@@ -100,6 +124,8 @@ const ChatBox: React.FC = () => {
       addMessage({
         role: 'Assistant',
         content: cleanText,
+        followUps: resp.followUps?.slice(0, 3),
+        pdfBase64: resp.pdfBase64,
       });
     } catch (err) {
       console.error(err);
@@ -145,7 +171,7 @@ const ChatBox: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-[1350px] flex flex-col" style={{ color: 'var(--color-text)' }}>
+    <div className="w-full max-w-[1350px] flex flex-col px-4" style={{ color: 'var(--color-text)' }}>
       <ChatHeader
         backendOk={backendOk}
         selected={firstOption}
@@ -160,7 +186,12 @@ const ChatBox: React.FC = () => {
       <div className="w-full flex-1">
         <div ref={conversationRef} className="w-full flex-1">
           {showChat ? (
-            <MessagesList messages={messages} scrollRef={scrollRef} />
+            <MessagesList
+              messages={messages}
+              scrollRef={scrollRef}
+              onSuggestionClick={handleQuickAsk}
+              onPdfDownload={triggerPdfDownload}
+            />
           ) : (
             <FirstOptionsGrid onSelect={handleFirstSelect} />
           )}

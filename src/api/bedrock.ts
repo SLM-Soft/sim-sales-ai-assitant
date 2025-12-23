@@ -6,6 +6,8 @@ export type Role = 'User' | 'Assistant';
 export interface ChatMessage {
   role: Role;
   content: string;
+  followUps?: string[];
+  pdfBase64?: string;
 }
 
 // ---------- Chat Completion ----------
@@ -14,7 +16,7 @@ export async function sendChat(params: {
   optionKey: string; // sales | project_analysis | general_llm
   sessionId?: string;
   messages?: ChatMessage[];
-}): Promise<{ outputText: string }> {
+}): Promise<{ outputText: string; followUps?: string[]; pdfBase64?: string }> {
   const resp = await axios.post(`${config.apiBaseUrl}/chat`, params);
 
   if (!resp.data || !resp.data.outputText) {
@@ -23,6 +25,8 @@ export async function sendChat(params: {
 
   return {
     outputText: resp.data.outputText,
+    followUps: resp.data.followUps,
+    pdfBase64: resp.data.pdfBase64,
   };
 }
 

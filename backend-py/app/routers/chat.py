@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+import base64
+import json as _json
+
 from botocore.exceptions import NoCredentialsError, BotoCoreError, ClientError
 
 from app.schemas.chat import ChatMessage, ChatRequest, ChatResponse
@@ -14,6 +17,8 @@ from app.core.bedrock import (
     stream_llm_claude,
 )
 from app.prompts.registry import get_prompt_config, build_system_prompt
+from app.prompts.pdf_prompt import build_pdf_prompt
+from app.core.pdf_builder import build_pdf_from_spec
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -43,6 +48,22 @@ def _build_messages(payload: ChatRequest) -> List[Dict[str, str]]:
     return messages
 
 
+def _extract_first_json_object(text: str) -> Optional[str]:
+    start = text.find("{")
+    if start == -1:
+        return None
+    depth = 0
+    for i in range(start, len(text)):
+        ch = text[i]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    return None
+
+
 @router.post("", response_model=ChatResponse)
 def chat_handler(payload: ChatRequest) -> ChatResponse:
     """
@@ -61,13 +82,30 @@ def chat_handler(payload: ChatRequest) -> ChatResponse:
                 include_sources=cfg.include_sources,
             )
 
+        follow_prompt = (
+            "Generate up to 3 concise, content-specific follow-up questions that deepen the topic. "
+            "Avoid meta questions about the conversation, the PDF, or asking if the user wants more. "
+            "Use the same language as the most recent user message. Return only the questions as a JSON array "
+            "immediately after the marker FOLLOW_UPS_JSON:, without markdown, links, or extra prose."
+        )
+
+        follow_section = (
+            "\n- After the main answer, generate up to 3 short follow-up questions based on this instruction: "
+            f"\"{follow_prompt}\""
+            "\n- Return follow-ups as a JSON array (no markdown, no prose) immediately after the marker FOLLOW_UPS_JSON:"
+        )
+
         system_prompt = build_system_prompt(cfg, dataset)
         system_prompt = (
             f"{system_prompt}\n\n"
             "Conversation rules:\n"
-            "- If the user asks for a PDF, provide the full PDF-ready body text. Do not apologize.\n"
             "- Stay within the shared conversation context.\n"
-            "- Keep answers concise and actionable."
+            "- Keep answers concise and actionable.\n"
+            "- Never describe UI actions such as clicking buttons, downloading files, or saving PDFs.\n"
+            "- For trivial or common-knowledge questions, answer directly without mentioning the Knowledge Base and do not include follow-ups.\n"
+            "\n"
+            f"{build_pdf_prompt()}"
+            f"{follow_section}"
         )
         messages = _build_messages(payload)
 
@@ -78,10 +116,48 @@ def chat_handler(payload: ChatRequest) -> ChatResponse:
             temperature=cfg.temperature,
         )
 
+        # Lightweight extraction: look for markers and parse trailing JSON blocks.
+        followups: Optional[list[str]] = None
+        pdf_base64: Optional[str] = None
+
+        marker = "FOLLOW_UPS_JSON:"
+        visible_answer = answer
+        if marker in answer:
+            try:
+                visible_answer, json_blob = answer.split(marker, 1)
+                json_part = json_blob.strip()
+                parsed = _json.loads(json_part)
+                if isinstance(parsed, list):
+                    followups = [str(x) for x in parsed][:3]
+            except Exception:
+                visible_answer = answer
+                followups = None
+
+        # Parse optional PDF spec from visible_answer (must come before follow‑ups).
+        pdf_marker = "PDF_DOC_JSON:"
+        if pdf_marker in visible_answer:
+            try:
+                text_part, pdf_blob = visible_answer.split(pdf_marker, 1)
+                pdf_json = pdf_blob.strip()
+                # If someone accidentally appended follow‑ups after the JSON in the same block,
+                # cut off at the follow‑ups marker defensively.
+                if marker in pdf_json:
+                    pdf_json, _ = pdf_json.split(marker, 1)
+                json_object = _extract_first_json_object(pdf_json) or pdf_json
+                spec = _json.loads(json_object)
+                pdf_bytes = build_pdf_from_spec(spec)
+                pdf_base64 = base64.b64encode(pdf_bytes).decode("ascii")
+                visible_answer = text_part
+            except Exception:
+                # On any parsing/build failure, fall back to plain text answer.
+                pdf_base64 = None
+
         return ChatResponse(
-            outputText=answer,
+            outputText=visible_answer.strip(),
             optionKey=payload.optionKey,
             sessionId=payload.sessionId,
+            followUps=followups,
+            pdfBase64=pdf_base64,
         )
 
     except NoCredentialsError:

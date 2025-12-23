@@ -1,22 +1,20 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { FaFileDownload } from "react-icons/fa";
 import { FiCopy, FiCheck, FiEdit2, FiSave, FiX } from "react-icons/fi";
 import { useChatStore } from "../store/chatStore";
-import { exportMarkdownToPdf } from "../utils/pdfExport";
-import { FaFileDownload } from "react-icons/fa";
 import type { ChatMessage } from "../api/bedrock";
 
 interface Props {
   messages: ChatMessage[];
   scrollRef: React.RefObject<HTMLDivElement | null>;
+  onSuggestionClick?: (text: string) => void;
+  onPdfDownload?: (pdfBase64: string, fileName: string) => void;
 }
 
 const urlRegex =
   /(https?:\/\/[^\s]+|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g;
-// Detects explicit PDF requests in most languages by looking for the token "pdf" plus common verbs.
-const pdfRequestRegex =
-  /(?:^|\s|[^a-zA-Z0-9])pdf(?:\s|[^a-zA-Z0-9]|$)|download\s+pdf|save\s+as\s+pdf|generate\s+pdf|export\s+pdf|create\s+pdf|pdf[-\s]?file/i;
 
 const renderWithLinks = (text: string): React.ReactNode[] => {
   if (!text) return [""];
@@ -54,9 +52,13 @@ const renderWithLinks = (text: string): React.ReactNode[] => {
   return nodes;
 };
 
-const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
+const MessagesList: React.FC<Props> = ({
+  messages,
+  scrollRef,
+  onSuggestionClick,
+  onPdfDownload,
+}) => {
   const updateMessageContent = useChatStore((s) => s.updateMessageContent);
-  const theme = useChatStore((s) => s.theme);
   const [copiedMsgIdx, setCopiedMsgIdx] = React.useState<number | null>(null);
   const [editingIdx, setEditingIdx] = React.useState<number | null>(null);
   const [draftContent, setDraftContent] = React.useState<string>("");
@@ -121,24 +123,6 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
     }
   }, [draftContent, editingIdx, adjustEditHeight]);
 
-  const handleExportPdf = async (content: string, idx: number) => {
-    try {
-      await exportMarkdownToPdf(content, {
-        fileName: `assistant-answer-${idx + 1}.pdf`,
-        title: "Powered by SLM Assistant",
-        theme,
-      });
-    } catch (error) {
-      console.error("Failed to export PDF", error);
-    }
-  };
-
-  const isPdfRequestedForMessage = (index: number) => {
-    if (index === 0) return false;
-    const prev = messages[index - 1];
-    return prev?.role === "User" && pdfRequestRegex.test(prev.content);
-  };
-
   return (
     <div className="px-4 py-4 text-[var(--color-text)]">
       <div className="flex flex-col gap-4">
@@ -150,6 +134,12 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
           messages.map((m, i) => {
             const isUser = m.role === "User";
             const isCopied = copiedMsgIdx === i;
+            const isLatestAssistant =
+              m.role === "Assistant" && i === messages.length - 1;
+            const followUps = isLatestAssistant
+              ? m.followUps?.slice(0, 3) ?? []
+              : [];
+            const pdfBase64 = m.pdfBase64;
 
             return (
               <div
@@ -295,29 +285,26 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
                         </ReactMarkdown>
                       </div>
                     )}
-                    {!isUser &&
-                      isPdfRequestedForMessage(i) &&
-                      editingIdx !== i && (
-                        <div
-                          className="!m-4 w-fit gap-10 flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] !px-4 !py-3 text-sm text-[var(--color-text)] shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
-                          data-export-hide="true"
-                        >
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              PDF ready for download
-                            </span>
-                          </div>
+                    {!isUser && followUps.length > 0 && editingIdx !== i && (
+                      <div
+                        className="!mt-3 flex flex-col flex-wrap items-start gap-2 !px-4 !py-2"
+                        data-export-hide="true"
+                      >
+                        <span className="text-xs uppercase tracking-wide text-[var(--color-text-muted)]">
+                          Continue conversation:
+                        </span>
+                        {followUps.map((text, idx) => (
                           <button
+                            key={`${text}-${idx}`}
                             type="button"
-                            onClick={() => handleExportPdf(m.content, i)}
-                            className="inline-flex items-center justify-center rounded-full bg-[var(--color-surface-muted)] !px-3 !py-2 text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] disabled:opacity-60"
-                            title="Export chat"
-                            aria-label="Export chat"
+                            onClick={() => onSuggestionClick?.(text)}
+                            className="rounded-full bg-transparent px-2 py-1 text-sm text-[var(--color-accent)] underline underline-offset-2 transition hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                           >
-                            <FaFileDownload size={18} />
+                            {text}
                           </button>
-                        </div>
-                      )}
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {!isUser && editingIdx !== i && (
@@ -325,6 +312,19 @@ const MessagesList: React.FC<Props> = ({ messages, scrollRef }) => {
                       className="!mt-2 !ml-4 flex gap-2"
                       data-export-hide="true"
                     >
+                      {pdfBase64 && onPdfDownload ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onPdfDownload(pdfBase64, `assistant-response-${i + 1}.pdf`)
+                          }
+                          className="inline-flex items-center gap-2 rounded-full text-sm text-[var(--color-text)] transition hover:opacity-100"
+                          style={{ opacity: 0.9 }}
+                        >
+                          <FaFileDownload size={16} />
+                          Download PDF
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => handleCopy(m.content, i)}

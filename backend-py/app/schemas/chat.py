@@ -21,3 +21,5 @@ class ChatResponse(BaseModel):
     outputText: str
     optionKey: str
     sessionId: Optional[str] = None
+    followUps: list[str] | None = None
+    pdfBase64: Optional[str] = None
